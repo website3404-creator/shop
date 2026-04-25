@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Matin Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --main: #0088cc; --red: #d9534f; --aba: #005f91; --orange: #ff9900; --red-hot: #ff0000; --pink: #ff66b2; --light-pink: #fff0f5; --dark-bg: #121212; }
+        body { font-family: 'Khmer OS Battambang', Arial; background: var(--light-pink); margin: 0; padding: 0; overflow-x: hidden; }
+        
+        .top-bar { background: #ffffff; padding: 10px 15px; display: flex; align-items: center; justify-content: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .header-left { display: flex; align-items: center; cursor: pointer; }
+        .shop-logo { width: 35px; height: 35px; border-radius: 8px; margin-right: 8px; border: 1.5px solid var(--pink); }
+        .shop-name { font-size: 18px; font-weight: 900; color: var(--pink); margin: 0; font-family: 'Arial Black', sans-serif; }
+
+        .banner-container { width: 100%; padding: 8px 12px; box-sizing: border-box; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; -webkit-overflow-scrolling: touch; }
+        .banner-container::-webkit-scrollbar { display: none; }
+        .banner-img { min-width: 100%; aspect-ratio: 16 / 7; height: auto; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); scroll-snap-align: start; object-fit: cover; }
+
+        .news-ticker { background: var(--red-hot); padding: 6px 0; overflow: hidden; }
+        .news-ticker marquee { color: white; font-weight: bold; font-size: 13px; display: block; }
+        
+        .section-title { padding: 15px 12px 5px 12px; font-size: 18px; font-weight: bold; color: #333; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: #ffcc00; font-size: 16px; }
+
+        .container { padding: 12px; max-width: 600px; margin: auto; min-height: 40vh; }
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .product-card { background: white; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
+        .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; }
+        .discount-badge { position: absolute; top: 0; left: 0; background: var(--red-hot); color: white; padding: 2px 8px; font-size: 10px; font-weight: bold; border-radius: 0 0 10px 0; z-index: 5; }
+        
+        .out-of-stock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; z-index: 10; font-weight: bold; color: var(--red-hot); font-size: 16px; transform: rotate(-15deg); pointer-events: none; }
+        .disabled-card { pointer-events: none; opacity: 0.8; }
+
+        .price-container { margin: 5px 0; display: flex; flex-direction: column; align-items: center; }
+        .old-price { color: #888; text-decoration: line-through; font-size: 12px; }
+        .price { color: var(--red-hot); font-weight: bold; font-size: 16px; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 5px; }
+        .btn-buy { background: var(--orange); color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn-cart { background: #e7f3ff; color: var(--main); border: 1px solid var(--main); padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+        .page-btn { padding: 6px 10px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
+        .page-btn.active { background: var(--pink); color: white; border-color: var(--pink); }
+
+        .footer { background: #1a1c23; color: #b0b3b8; padding: 15px; text-align: left; margin-top: 20px; border-top: 2px solid #000; }
+        .about-title { color: #ffcc00; margin: 0; font-size: 16px; font-weight: bold; font-family: 'Arial Black', sans-serif; }
+        .about-desc { font-size: 12px; line-height: 1.4; margin: 5px 0; color: #d1d1d1; }
+        .copyright { font-size: 11px; margin-bottom: 10px; color: #888; }
+        
+        .payment-info { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: white; }
+        .pay-badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; color: white; }
+        .khqr { background: #d9534f; }
+        .aba-badge { background: #00bcd4; }
+
+        .social-links { display: flex; gap: 8px; }
+        .social-links a { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; font-size: 14px; }
+
+        .float-group { position: fixed; bottom: 20px; right: 20px; z-index: 2000; }
+        .bg-cart { background: var(--aba); width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: none; position: relative; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .badge { position: absolute; top: -2px; right: -2px; background: var(--red); width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-weight: bold; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        .cart-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .cart-item img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .cart-info { flex: 1; }
+        .qty-control { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { width: 25px; height: 25px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; }
+        .delete-btn { color: var(--red); cursor: pointer; font-size: 18px; margin-left: 5px; }
+        .order-form { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .order-form input, .order-form textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="header-left" onclick="goBackPage()">
+        <img src="gregrrthth.png" alt="Logo" class="shop-logo">
+        <h1 class="shop-name">MATIN STORE</h1>
+    </div>
+</div>
+
+<div class="banner-container">
+    <img src="tuh65uj.png" class="banner-img">
+</div>
+
+<div class="news-ticker">
+    <marquee>🔥 សូមស្វាគមន៍មកកាន់ Matin Store! លក់គ្រឿងហ្គេមគ្រប់ប្រភេទ តម្លៃសមរម្យ និងមានទំនុកចិត្តខ្ពស់បំផុត</marquee>
+</div>
+
+<div class="section-title">
+    <i class="fas fa-star"></i> ទំនិញ
+</div>
+
+<div class="container">
+    <div id="productGrid" class="product-grid"></div>
+    <div id="pagination" class="pagination"></div>
+</div>
+
+<div class="footer">
+    <div class="about-title">MATIN STORE</div>
+    <p class="about-desc">Official Partner - Fast delivery. Secure payment. Trusted Store service.</p>
+    <div class="copyright">© 2026 Matin Store. All rights reserved.</div>
+    
+    <div class="payment-info">
+        We accept: 
+        <span class="pay-badge khqr">KHQR</span>
+        <span class="pay-badge aba-badge">ABA</span>
+    </div>
+
+    <div class="social-links">
+        <a href="https://t.me/matintopup168" target="_blank" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></a>
+        <a href="https://www.facebook.com/share/14h3sPqRKjc/" target="_blank" style="background:#1877f2;"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.tiktok.com/@matin.404?_r=1&_t=ZS-95oXFlD7Fn2" target="_blank" style="background:#000;"><i class="fab fa-tiktok"></i></a>
+    </div>
+</div>
+
+<div class="float-group">
+    <button class="bg-cart" onclick="openCart()">
+        <i class="fas fa-shopping-cart fa-lg"></i>
+        <div class="badge" id="cartBadge">0</div>
+    </button>
+</div>
+
+<div class="modal" id="cartModal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0">🛒 កន្ត្រកអីវ៉ាន់</h3>
+            <span onclick="closeCart()" style="font-size:25px; cursor:pointer;">&times;</span>
+        </div>
+        <div id="cartList"></div>
+        <div style="display:flex; justify-content:space-between; padding:10px 0; font-weight:bold; border-top:1px dashed #eee;">
+            <span>សរុប៖</span> <span id="totalPrice" style="color:var(--red-hot); font-size:18px;">$0.00</span>
+        </div>
+        <div class="order-form">
+            <input type="text" id="custName" placeholder="👤 ឈ្មោះរបស់អ្នក">
+            <input type="number" id="custPhone" placeholder="📞 លេខទូរសព្ទ">
+            <textarea id="custAddr" rows="2" placeholder="📍 អាសយដ្ឋានដឹកជញ្ជូន"></textarea>
+            <button class="btn-buy" id="btnProcess" style="width:100%; padding:15px; background:var(--aba); font-size:16px;" onclick="processOrder()">💳 Pay Now</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BOT_TOKEN = '8095729462:AAEUHFYgZpnXReMyW8bElbEdNQ36Y7SQkRo';
+    const CHAT_ID = '1643504321';
+    const GROUP_ID = '-1002233445566';
+
+    const products = [
+        { id: 1, name: "ដៃបាញ់ហ្គេម01", price: 5.00, oldPrice: 7.00, img: "photo_6136671215972715559_y.jpg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 2, name: "Keyboard gaming", price: 16.00, oldPrice: 17.00, img: "photo_6163286655859624935_y.jpg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 3, name: "ស្រោមដៃលេងហ្គេម", price: 3.00, oldPrice: 3.50, img: "photo_6136671215972715556_y.jpg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 4, name: "កង្ហារត្រជាក់01", price: 15.00, oldPrice: 18.00, img: "IMG_2119595465501475.jpeg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 5, name: "កង្ហារត្រជាក់02", price: 8.00, oldPrice: 12.00, img: "received_937872772061987.jpeg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 6, name: "ដៃជំនួយការបាញ់", price: 19.00, oldPrice: 23.00, img: "photo_6136671215972715553_y.jpg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 7, name: "ដៃបាញ់ហ្គេម02", price: 5.00, oldPrice: 7.00, img: "photo_6136671215972715557_y.jpg", discount: "បញ្ចុះតម្លៃ", inStock: true },
+        { id: 8, name: "Keyboard", price: 25.00, oldPrice: 28.00, img: "photo_6136671215972715322_y.jpg", discount: "បញ្ចុះតម្លៃ", inStock: true }
+    ];
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let currentPage = parseInt(sessionStorage.getItem('currentPage')) || 1;
+    const itemsPerPage = 10;
+
+    function initHistory() { history.pushState({page: currentPage}, ""); }
+    window.onpopstate = function(event) {
+        if (document.getElementById('cartModal').style.display === 'flex') { closeCart(); history.pushState({page: currentPage}, ""); } 
+        else if (currentPage > 1) { goBackPage(); history.pushState({page: currentPage}, ""); }
+    };
+
+    function goBackPage() { if (currentPage > 1) { currentPage--; render(); window.scrollTo({top:0, behavior:'smooth'}); } }
+    function changePage(page) { currentPage = page; render(); window.scrollTo({top:0, behavior:'smooth'}); history.pushState({page: currentPage}, ""); }
+
+    function render() {
+        const grid = document.getElementById('productGrid');
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedData = products.slice(start, end);
+        grid.innerHTML = paginatedData.map(p => `
+            <div class="product-card ${!p.inStock ? 'disabled-card' : ''}">
+                ${p.discount ? `<div class="discount-badge">${p.discount}</div>` : ''}
+                ${!p.inStock ? `<div class="out-of-stock-overlay">អស់ស្តុក</div>` : ''}
+                <img src="${p.img}" class="product-img">
+                <div style="font-size:13px; font-weight:bold; margin:5px 0;">${p.name}</div>
+                <div class="price-container">
+                    ${p.oldPrice > 0 ? `<span class="old-price">$${p.oldPrice.toFixed(2)}</span>` : ''}
+                    <span class="price">$${p.price.toFixed(2)}</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-buy" onclick="quickBuy(${p.id})">ទិញ</button>
+                    <button class="btn-cart" onclick="addToCart(${p.id})">ដាក់កន្ត្រក</button>
+                </div>
+            </div>
+        `).join('');
+        renderPagination();
+        updateBadge();
+        sessionStorage.setItem('currentPage', currentPage);
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(products.length / itemsPerPage);
+        const paginationDiv = document.getElementById('pagination');
+        paginationDiv.innerHTML = '';
+        if (totalPages <= 1) return;
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.onclick = () => changePage(i);
+            paginationDiv.appendChild(btn);
+        }
+    }
+
+    function updateBadge() { document.getElementById('cartBadge').innerText = cart.reduce((s,i)=>s+i.qty, 0); }
+    function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); updateBadge(); }
+    
+    function addToCart(id) {
+        const p = products.find(x=>x.id===id);
+        if(!p || !p.inStock) return;
+        const inCart = cart.find(x=>x.id===id);
+        if(inCart) inCart.qty++; else cart.push({...p, qty:1});
+        saveCart();
+        // សញ្ញាគ្រិះពេលបន្ថែមអីវ៉ាន់
+        Swal.fire({ icon:'success', title:'បន្ថែមជោគជ័យ', timer:700, showConfirmButton:false });
+    }
+
+    function changeQty(id, delta) {
+        const item = cart.find(x => x.id === id);
+        if (item) {
+            item.qty += delta;
+            if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
+            saveCart();
+            renderCart();
+        }
+    }
+
+    function removeItem(id) { cart = cart.filter(x => x.id !== id); saveCart(); renderCart(); }
+    function openCart() { renderCart(); document.getElementById('cartModal').style.display = 'flex'; history.pushState({action: "cartOpen"}, ""); }
+    function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
+    function quickBuy(id) { addToCart(id); openCart(); }
+
+    function renderCart() {
+        let total = 0;
+        const list = document.getElementById('cartList');
+        if(cart.length === 0) { list.innerHTML = "<p style='text-align:center; font-size:12px; padding:20px;'>កន្ត្រកទំនេរ</p>"; document.getElementById('totalPrice').innerText = "$0.00"; return; }
+        list.innerHTML = cart.map(item => {
+            total += (item.price * item.qty);
+            return `<div class="cart-item">
+                <img src="${item.img}">
+                <div class="cart-info"><b>${item.name}</b><br><span style="color:var(--red-hot);">$${item.price.toFixed(2)}</span></div>
+                <div class="qty-control">
+                    <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+                    <span>${item.qty}</span>
+                    <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                </div>
+                <i class="fas fa-trash-alt delete-btn" onclick="removeItem(${item.id})"></i>
+            </div>`;
+        }).join('');
+        document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
+    }
+
+    async function processOrder() {
+        const nameElem = document.getElementById('custName');
+        const phoneElem = document.getElementById('custPhone');
+        const addrElem = document.getElementById('custAddr');
+        const total = document.getElementById('totalPrice').innerText;
+        const btn = document.getElementById('btnProcess');
+
+        const name = nameElem.value.trim();
+        const phone = phoneElem.value.trim();
+        const addr = addrElem.value.trim();
+
+        if(cart.length === 0 || !name || !phone || !addr) { 
+            Swal.fire({
+                title: 'សូមបំពេញព័ត៌មានឱ្យគ្រប់!',
+                text: 'សូមបំពេញឈ្មោះ លេខទូរសព្ទ និងអាសយដ្ឋានដឹកជញ្ជូន ដើម្បីបន្តការទូទាត់ 🙏',
+                icon: 'warning',
+                confirmButtonText: 'យល់ព្រម',
+                confirmButtonColor: '#005f91',
+                didOpen: () => {
+                    document.querySelector('.swal2-container').style.zIndex = "9999";
+                }
+            });
+            return; 
+        }
+
+        btn.disabled = true;
+        btn.innerText = "កំពុងផ្ញើទិន្នន័យ...";
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('km-KH');
+        const timeStr = now.toLocaleTimeString('km-KH');
+        const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+
+        let msg = `🛒 *ការកុម្ម៉ង់ថ្មី*\n----------\n`;
+        msg += `📅 ថ្ងៃទី: ${dateStr}\n⏰ ម៉ោង: ${timeStr}\n`;
+        msg += `👤 ឈ្មោះ: ${name}\n📞 លេខ: ${phone}\n📍 ទីតាំង: ${addr}\n----------\n`;
+        cart.forEach(i => msg += `📦 ${i.name}  ចំនួន: ${i.qty}  Price: $${(i.price * i.qty).toFixed(2)}\n`);
+        msg += `----------\n🔢 ចំនួនសរុប: ${totalItems} មុខ\n💰 *សរុប: ${total}*`;
+
+        const urls = [
+            `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`,
+            `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`
+        ];
+
+        try {
+            await Promise.allSettled(urls.map(url => fetch(url)));
+            const finalTotal = total.replace('$', '');
+
+            closeCart();
+            sessionStorage.setItem('orderCompleted', 'true');
+
+            cart = []; 
+            localStorage.removeItem('cart'); 
+            nameElem.value = ""; phoneElem.value = ""; addrElem.value = "";
+            updateBadge();
+            renderCart();
+
+            btn.disabled = false;
+            btn.innerText = "💳 Pay Now";
+
+            window.location.href = `https://pay.ababank.com/oRF8/du83nu9t?amount=${finalTotal}`;
+
+        } catch (e) {
+            btn.disabled = false;
+            btn.innerText = "💳 Pay Now";
+        }
+    }
+
+    // មុខងារឆែកមើល និងបង្ហាញសញ្ញា "រួចរាល់" តូចលោតមកដូចពេលបន្ថែមអីវ៉ាន់
+    function checkOrderSuccess() {
+        if (sessionStorage.getItem('orderCompleted') === 'true') {
+            Swal.fire({
+                icon: 'success',
+                title: 'រួចរាល់',
+                timer: 800, // លោតមកហើយបាត់ទៅវិញលឿនដូចពេល Add to cart
+                showConfirmButton: false,
+                didOpen: () => {
+                    document.querySelector('.swal2-container').style.zIndex = "9999";
+                }
+            });
+            sessionStorage.removeItem('orderCompleted');
+        }
+    }
+
+    window.addEventListener('pageshow', checkOrderSuccess);
+    window.addEventListener('focus', checkOrderSuccess);
+
+    window.onload = () => { render(); initHistory(); };
+</script>
+</body>
+</html>
